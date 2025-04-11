@@ -10,19 +10,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Leaf, Menu, MapPin, AlertTriangle, User, LogIn, BarChart4 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
-interface NavbarProps {
-  isLoggedIn?: boolean;
-  userAvatar?: string;
-  userName?: string;
-}
-
-const Navbar = ({ isLoggedIn = false, userAvatar = "", userName = "" }: NavbarProps) => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const navigationItems = [
     { name: "Map", href: "/map", icon: MapPin },
@@ -37,6 +36,24 @@ const Navbar = ({ isLoggedIn = false, userAvatar = "", userName = "" }: NavbarPr
   ];
 
   const closeSheet = () => setIsOpen(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout failed",
+        description: "An error occurred while logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -98,14 +115,14 @@ const Navbar = ({ isLoggedIn = false, userAvatar = "", userName = "" }: NavbarPr
             </Link>
           </Button>
 
-          {isLoggedIn ? (
+          {currentUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={userAvatar} alt={userName} />
+                    <AvatarImage src={currentUser.photoURL || ""} alt={currentUser.displayName || currentUser.email || ""} />
                     <AvatarFallback className="bg-zerowaste-primary text-primary-foreground">
-                      {userName.substring(0, 2).toUpperCase()}
+                      {(currentUser.displayName || currentUser.email || "").substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -119,7 +136,7 @@ const Navbar = ({ isLoggedIn = false, userAvatar = "", userName = "" }: NavbarPr
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>

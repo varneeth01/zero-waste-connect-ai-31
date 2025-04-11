@@ -33,6 +33,7 @@ const Login = () => {
         title: "Success!",
         description: "You've successfully logged in.",
       });
+      // Redirect to the home page after successful login
       navigate("/");
     } catch (error) {
       console.error("Login error:", error);
