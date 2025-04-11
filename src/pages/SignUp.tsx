@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Icons
-import { Leaf, UserPlus, Mail, Lock, Eye, EyeOff, ArrowLeft, Info } from "lucide-react";
+import { Leaf, UserPlus, Mail, Lock, Eye, EyeOff, ArrowLeft, Info, Chrome } from "lucide-react";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -22,7 +22,8 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { signUp, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -75,6 +76,8 @@ const SignUp = () => {
       
       if (error.code === "auth/email-already-in-use") {
         errorMessage = "This email is already in use. Please try another email address.";
+      } else if (error.code === "auth/configuration-not-found") {
+        errorMessage = "Firebase authentication configuration is not set up correctly.";
       }
       
       toast({
@@ -84,6 +87,36 @@ const SignUp = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    if (!agreeToTerms) {
+      toast({
+        title: "Agreement required",
+        description: "Please agree to the Terms of Service and Privacy Policy.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      toast({
+        title: "Success!",
+        description: "Your account has been created with Google.",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Google signup error:", error);
+      toast({
+        title: "Registration failed",
+        description: "Could not sign up with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -207,6 +240,37 @@ const SignUp = () => {
                   <span className="flex items-center gap-2">
                     <UserPlus className="h-4 w-4" />
                     Create Account
+                  </span>
+                )}
+              </Button>
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-muted"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+              
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full"
+                onClick={handleGoogleSignUp}
+                disabled={isGoogleLoading || !agreeToTerms}
+              >
+                {isGoogleLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+                    Connecting...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <Chrome className="h-4 w-4" />
+                    Sign up with Google
                   </span>
                 )}
               </Button>

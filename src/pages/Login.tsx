@@ -12,14 +12,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator";
 
 // Icons
-import { Leaf, LogIn, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Leaf, LogIn, Mail, Lock, Eye, EyeOff, ArrowRight, Chrome } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,6 +45,27 @@ const Login = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      toast({
+        title: "Success!",
+        description: "You've successfully logged in with Google.",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast({
+        title: "Login failed",
+        description: "Could not log in with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -139,6 +161,37 @@ const Login = () => {
                 )}
               </Button>
             </form>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-muted"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full"
+              onClick={handleGoogleLogin}
+              disabled={isGoogleLoading}
+            >
+              {isGoogleLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+                  Connecting...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <Chrome className="h-4 w-4" />
+                  Sign in with Google
+                </span>
+              )}
+            </Button>
           </CardContent>
           <Separator />
           <CardFooter className="flex justify-center p-6">

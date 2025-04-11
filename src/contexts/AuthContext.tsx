@@ -5,10 +5,11 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
+  signInWithPopup,
   UserCredential,
   User
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, googleProvider } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string) => Promise<UserCredential>;
   login: (email: string, password: string) => Promise<UserCredential>;
+  loginWithGoogle: () => Promise<UserCredential>;
   logout: () => Promise<void>;
 }
 
@@ -51,6 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  const loginWithGoogle = async () => {
+    return signInWithPopup(auth, googleProvider);
+  };
+
   const logout = async () => {
     return signOut(auth);
   };
@@ -60,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signUp,
     login,
+    loginWithGoogle,
     logout
   };
 
